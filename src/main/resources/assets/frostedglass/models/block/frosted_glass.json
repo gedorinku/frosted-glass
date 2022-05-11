@@ -1,6 +1,6 @@
 {
+  "parent": "minecraft:block/cube_all",
   "textures": {
-    "particle": "minecraft:block/obsidian",
-    "texture": "frostedglass:block/frosted_glass"
+    "all": "minecraft:block/glass"
   }
 }

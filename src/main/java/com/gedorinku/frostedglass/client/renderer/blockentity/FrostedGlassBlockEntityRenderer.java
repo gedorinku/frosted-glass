@@ -2,36 +2,66 @@ package com.gedorinku.frostedglass.client.renderer.blockentity;
 
 import com.gedorinku.frostedglass.FrostedGlassMod;
 import com.gedorinku.frostedglass.block.entity.FrostedGlassBlockEntity;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.GlUtil;
+import com.mojang.blaze3d.platform.TextureUtil;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Matrix4f;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
+
+import java.nio.ByteBuffer;
 
 public class FrostedGlassBlockEntityRenderer implements BlockEntityRenderer<FrostedGlassBlockEntity> {
     private static final RenderType RENDER_TYPE = RenderType
-            .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 2097152, true, false, RenderType.CompositeState
+            .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState
                     .builder()
                     .setLightmapState(new RenderStateShard.LightmapStateShard(true))
-                    .setCullState(new RenderStateShard.CullStateShard(true))
-                    .setDepthTestState(new RenderStateShard.DepthTestStateShard("always", 519))
+                    //.setCullState(new RenderStateShard.CullStateShard(true))
+                    //.setDepthTestState(new RenderStateShard.DepthTestStateShard("always", 519))
                     .setShaderState(new RenderStateShard.ShaderStateShard(() -> FrostedGlassMod.FROSTED_GLASS_BLOCK_ENTITY_SHADER))
-                    .setTextureState(new RenderStateShard.TextureStateShard(InventoryMenu.BLOCK_ATLAS, false, true))
-                    .createCompositeState(true));
+                    .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation("textures/block/glass.png"), false, true))
+//                    .setTextureState(new RenderStateShard.EmptyTextureStateShard(() -> {
+//                        RenderSystem.enableTexture();
+////                        TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
+////                        texturemanager.getTexture(p_110333_).setFilter(p_110334_, p_110335_);
+////                        RenderSystem.setShaderTexture(0, p_110333_);
+//                        ByteBuffer bytebuffer = GlUtil.allocateMemory(128 * 128 * 4);
+//                        RenderSystem.readPixels(0, 0, 128, 128, 32992, 5121, bytebuffer);
+//                        int id = GlStateManager._genTexture();
+//                        RenderSystem.bindTextureForSetup(id);
+//                        TextureUtil.initTexture(bytebuffer.asIntBuffer(), 128, 128);
+//                        RenderSystem.setShaderTexture(0, id);
+//                    }, () -> {
+//                    }))
+                    .setTransparencyState(new RenderStateShard.TransparencyStateShard("additive_transparency", () -> {
+                        RenderSystem.enableBlend();
+                        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+                    }, () -> {
+                        RenderSystem.disableBlend();
+                        RenderSystem.defaultBlendFunc();
+                    }))
+                    .createCompositeState(false));
 
     public FrostedGlassBlockEntityRenderer(BlockEntityRendererProvider.Context renderer) {
     }
 
     @Override
     public void render(FrostedGlassBlockEntity blockEntity, float partialTicks, PoseStack ps, MultiBufferSource buffer, int light, int overlay) {
-
+        Matrix4f matrix4f = ps.last().pose();
+        this.renderCube(blockEntity, matrix4f, buffer.getBuffer(this.renderType()));
     }
 
     private void renderCube(FrostedGlassBlockEntity p_173691_, Matrix4f p_173692_, VertexConsumer p_173693_) {
