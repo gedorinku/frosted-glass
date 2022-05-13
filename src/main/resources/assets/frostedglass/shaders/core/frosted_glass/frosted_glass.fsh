@@ -1,14 +1,9 @@
 #version 150
 
-#moj_import <matrix.glsl>
-
 uniform sampler2D Sampler0;
-uniform sampler2D Sampler1;
+
 uniform vec4 ColorModulator;
 
-uniform float GameTime;
-
-in vec4 texProj0;
 in vec4 vertexColor;
 in vec2 texCoord0;
 in vec2 texCoord2;
@@ -48,6 +43,15 @@ void main() {
 //     destColor += texture(Sampler0, (texCoord0 + vec2( 2.0, -2.0)) * tFrag) * 0.02;
 //     //fragColor = destColor;
 //     fragColor = vec4(destColor.rgb, 1.0);
-    vec4 destColor = texture(Sampler0, texCoord0) * vertexColor;
-    fragColor = destColor;// * ColorModulator;
+//    vec4 destColor = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
+//    //fragColor = vec4(destColor.rgb, 1.0);// * ColorModulator;
+//    fragColor = texture(Sampler0, texCoord0) * vertexColor;
+//    vec4 color = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
+//    fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
+
+    //vec4 color = texture(Sampler0, texCoord0) * vertexColor;
+    //fragColor = color * ColorModulator;
+    //fragColor = vec4(texCoord0.xy, 0.0, 0.5);
+    //fragColor = texture(Sampler0, vec2(1.0, 1.0));
+    fragColor = ColorModulator;
 }
