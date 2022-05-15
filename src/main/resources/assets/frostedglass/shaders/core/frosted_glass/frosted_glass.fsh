@@ -49,9 +49,11 @@ void main() {
 //    vec4 color = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
 //    fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
 
-    //vec4 color = texture(Sampler0, texCoord0) * vertexColor;
-    //fragColor = color * ColorModulator;
-    //fragColor = vec4(texCoord0.xy, 0.0, 0.5);
+    vec4 color = texture(Sampler0, texCoord0) * vertexColor;
+    fragColor = color * ColorModulator;
+    //fragColor = vec4(texCoord0.x, texCoord0.y, 0.0, 1.0);
     //fragColor = texture(Sampler0, vec2(1.0, 1.0));
-    fragColor = ColorModulator;
+    //fragColor = ColorModulator;
+    //fragColor = texture(Sampler0, vec2(0.1, 0.1));
+    //fragColor = texelFetch(Sampler0, ivec2(2, 2), 0);
 }

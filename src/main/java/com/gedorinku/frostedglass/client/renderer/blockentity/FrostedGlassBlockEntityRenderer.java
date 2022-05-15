@@ -6,60 +6,56 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.GlUtil;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.SimpleBakedModel;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.client.model.pipeline.IVertexConsumer;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import static org.lwjgl.opengl.GL12.GL_BGRA;
+import static org.lwjgl.opengl.GL12.GL_UNSIGNED_INT_8_8_8_8_REV;
 
 public class FrostedGlassBlockEntityRenderer implements BlockEntityRenderer<FrostedGlassBlockEntity> {
-    //    private static final RenderType RENDER_TYPE = RenderType
-//            //.create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState
-//            .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS, 2097152, true, false, RenderType.CompositeState
-//                    .builder()
-//                    .setLightmapState(new RenderStateShard.LightmapStateShard(true))
-//                    //.setCullState(new RenderStateShard.CullStateShard(true))
-//                    //.setDepthTestState(new RenderStateShard.DepthTestStateShard("always", 519))
-//                    .setShaderState(new RenderStateShard.ShaderStateShard(() -> FrostedGlassMod.FROSTED_GLASS_BLOCK_ENTITY_SHADER))
-//                    .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation("textures/block/glass.png"), false, true))
-////                    .setTextureState(new RenderStateShard.EmptyTextureStateShard(() -> {
-////                        RenderSystem.enableTexture();
-//////                        TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
-//////                        texturemanager.getTexture(p_110333_).setFilter(p_110334_, p_110335_);
-//////                        RenderSystem.setShaderTexture(0, p_110333_);
-////                        ByteBuffer bytebuffer = GlUtil.allocateMemory(128 * 128 * 4);
-////                        RenderSystem.readPixels(0, 0, 128, 128, 32992, 5121, bytebuffer);
-////                        int id = GlStateManager._genTexture();
-////                        RenderSystem.bindTextureForSetup(id);
-////                        TextureUtil.initTexture(bytebuffer.asIntBuffer(), 128, 128);
-////                        RenderSystem.setShaderTexture(0, id);
-////                    }, () -> {
-////                    }))
-//                    .setTransparencyState(new RenderStateShard.TransparencyStateShard("additive_transparency", () -> {
-//                        RenderSystem.enableBlend();
-//                        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-//                    }, () -> {
-//                        RenderSystem.disableBlend();
-//                        RenderSystem.defaultBlendFunc();
-//                    }))
-//                    .createCompositeState(false));
     private static final RenderType RENDER_TYPE = RenderType
-            .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS, 2097152, true, true, RenderType.CompositeState.builder()
+            .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 2097152, true, true, RenderType.CompositeState.builder()
                     .setLightmapState(new RenderStateShard.LightmapStateShard(true))
                     .setShaderState(new RenderStateShard.ShaderStateShard(() -> FrostedGlassMod.FROSTED_GLASS_BLOCK_ENTITY_SHADER))
-                    .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(FrostedGlassMod.ID, "textures/block/glass.png"), false, true))
+                    //.setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation( "textures/block/glass.png"), false, true))
+                    .setTextureState(new RenderStateShard.EmptyTextureStateShard(() -> {
+                        RenderSystem.enableTexture();
+
+                        ByteBuffer bytebuffer = GlUtil.allocateMemory(128 * 128 * 4 * 4);
+                        RenderSystem.readPixels(0, 0, 128, 128, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, bytebuffer);
+                        int id = GlStateManager._genTexture();
+                        RenderSystem.bindTextureForSetup(id);
+                        TextureUtil.initTexture(bytebuffer.asIntBuffer(), 128, 128);
+                        RenderSystem.setShaderTexture(0, id);
+                    }, () -> {
+                    }))
                     .setTransparencyState(new RenderStateShard.TransparencyStateShard("translucent_transparency", () -> {
                         RenderSystem.enableBlend();
                         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
@@ -78,52 +74,144 @@ public class FrostedGlassBlockEntityRenderer implements BlockEntityRenderer<Fros
 
                     })).createCompositeState(true));
 
-    public FrostedGlassBlockEntityRenderer(BlockEntityRendererProvider.Context renderer) {
+    private final BlockRenderDispatcher blockRenderer;
+
+    public FrostedGlassBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+        this.blockRenderer = context.getBlockRenderDispatcher();
     }
 
     @Override
     public void render(FrostedGlassBlockEntity blockEntity, float partialTicks, PoseStack ps, MultiBufferSource buffer, int light, int overlay) {
-        //VertexConsumer vc = buffer.getBuffer(this.renderType());
-        //vc.
-
-//        BufferBuilder bufferbuilder1 = p_112870_.builder(RenderType.translucent());
-//        bufferbuilder1.setQuadSortOrigin(p_112866_ - (float)blockpos.getX(), p_112867_ - (float)blockpos.getY(), p_112868_ - (float)blockpos.getZ());
-//        p_112869_.transparencyState = bufferbuilder1.getSortState();
-
-        Matrix4f matrix4f = ps.last().pose();
-        this.renderCube(blockEntity, matrix4f, buffer.getBuffer(this.renderType()));
-    }
-
-    private void renderCube(FrostedGlassBlockEntity p_173691_, Matrix4f p_173692_, VertexConsumer p_173693_) {
-        float $$3 = this.getOffsetDown();
-        float $$4 = this.getOffsetUp();
-        //this.renderFace(p_173691_, p_173692_, p_173693_, 0.0F, 1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, Direction.SOUTH);
-        //this.renderFace(p_173691_, p_173692_, p_173693_, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, Direction.NORTH);
-        //this.renderFace(p_173691_, p_173692_, p_173693_, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 1.0F, 0.0F, Direction.EAST);
-        //this.renderFace(p_173691_, p_173692_, p_173693_, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.0F, Direction.WEST);
-        //this.renderFace(p_173691_, p_173692_, p_173693_, 0.0F, 1.0F, $$3, $$3, 0.0F, 0.0F, 1.0F, 1.0F, Direction.DOWN);
-        this.renderFace(p_173691_, p_173692_, p_173693_, 0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, Direction.UP);
-    }
-
-    private void renderFace(FrostedGlassBlockEntity p_173695_, Matrix4f p_173696_, VertexConsumer p_173697_, float p_173698_, float p_173699_, float p_173700_, float p_173701_, float p_173702_, float p_173703_, float p_173704_, float p_173705_, Direction p_173706_) {
-        if (p_173695_.shouldRenderFace(p_173706_)) {
-            p_173697_.vertex(p_173696_, p_173698_, p_173700_, p_173702_).endVertex();
-            p_173697_.vertex(p_173696_, p_173699_, p_173700_, p_173703_).endVertex();
-            p_173697_.vertex(p_173696_, p_173699_, p_173701_, p_173704_).endVertex();
-            p_173697_.vertex(p_173696_, p_173698_, p_173701_, p_173705_).endVertex();
+        Level level = blockEntity.getLevel();
+        if (level == null) {
+            return;
         }
 
-    }
-
-    protected float getOffsetUp() {
-        return 0.75F;
-    }
-
-    protected float getOffsetDown() {
-        return 0.375F;
+        VertexConsumer vc = buffer.getBuffer(this.renderType());
+        long seed = blockEntity.getBlockState().getSeed(blockEntity.getBlockPos());
+        var bakedModel = new SimpleBakedBlockModelWithoutAtlas((SimpleBakedModel) this.blockRenderer.getBlockModel(blockEntity.getBlockState()));
+        blockRenderer.getModelRenderer().tesselateBlock(level, bakedModel, blockEntity.getBlockState(), blockEntity.getBlockPos(), ps, vc, true, new Random(), seed, OverlayTexture.NO_OVERLAY, net.minecraftforge.client.model.data.EmptyModelData.INSTANCE);
     }
 
     protected RenderType renderType() {
         return RENDER_TYPE;
+    }
+
+    // TODO: int[] vertices を上書きするのは最悪っぽいので、良い感じに UV マッピングを読みこんで SimpleBakedModel を作るようにしたい
+    static class SimpleBakedBlockModelWithoutAtlas implements BakedModel {
+
+        private final SimpleBakedModel original;
+        private final Map<@Nullable Direction, List<BakedQuad>> quadsCache = new HashMap<>();
+
+        public SimpleBakedBlockModelWithoutAtlas(SimpleBakedModel original) {
+            this.original = original;
+        }
+
+        @Override
+        public List<BakedQuad> getQuads(@Nullable BlockState blockState, @Nullable Direction direction, Random random) {
+            // net.minecraft.client.resources.model.SimpleBakedModel#getQuads のロジックと整合性が取られている必要がある。
+            if (quadsCache.get(direction) != null) {
+                return quadsCache.get(direction);
+            }
+
+            var quads = original.getQuads(blockState, direction, random).stream().map(bakedQuad -> (BakedQuad) new BlockBakedQuad(bakedQuad)).toList();
+            quadsCache.put(direction, quads);
+
+            return quads;
+        }
+
+        @Override
+        public boolean useAmbientOcclusion() {
+            return original.useAmbientOcclusion();
+        }
+
+        @Override
+        public boolean isGui3d() {
+            return original.isGui3d();
+        }
+
+        @Override
+        public boolean usesBlockLight() {
+            return original.usesBlockLight();
+        }
+
+        @Override
+        public boolean isCustomRenderer() {
+            return original.isCustomRenderer();
+        }
+
+        @Override
+        public TextureAtlasSprite getParticleIcon() {
+            return original.getParticleIcon();
+        }
+
+        @Override
+        public ItemOverrides getOverrides() {
+            return original.getOverrides();
+        }
+    }
+
+    static class BlockBakedQuad extends BakedQuad {
+        private final BakedQuad original;
+        private final int[] vertices;
+
+        public BlockBakedQuad(BakedQuad original) {
+            super(null, 0, null, null, false);
+
+            this.original = original;
+
+            final int VERTEX_COUNT = 4;
+            var byteBuffer = ByteBuffer.allocate(original.getVertices().length * Integer.BYTES);
+            var intBuffer = byteBuffer.asIntBuffer();
+            intBuffer.put(original.getVertices());
+
+            final int U_LOCATION = 16;
+            final int V_LOCATION = 20;
+            final var U = new float[]{1.0f, 0.0f, 0.0f, 1.0f};
+            final var V = new float[]{1.0f, 1.0f, 0.0f, 0.0f};
+            for (int vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
+                final int offset = vertexIndex * byteBuffer.capacity() / VERTEX_COUNT;
+                byteBuffer.putFloat(offset + U_LOCATION, U[vertexIndex]);
+                byteBuffer.putFloat(offset + V_LOCATION, V[vertexIndex]);
+            }
+
+            vertices = new int[original.getVertices().length];
+            intBuffer.get(0, vertices);
+        }
+
+        @Override
+        public TextureAtlasSprite getSprite() {
+            return original.getSprite();
+        }
+
+        @Override
+        public int[] getVertices() {
+            return vertices;
+        }
+
+        @Override
+        public boolean isTinted() {
+            return original.isTinted();
+        }
+
+        @Override
+        public int getTintIndex() {
+            return original.getTintIndex();
+        }
+
+        @Override
+        public Direction getDirection() {
+            return original.getDirection();
+        }
+
+        @Override
+        public void pipe(IVertexConsumer consumer) {
+            original.pipe(consumer);
+        }
+
+        @Override
+        public boolean isShade() {
+            return original.isShade();
+        }
     }
 }
