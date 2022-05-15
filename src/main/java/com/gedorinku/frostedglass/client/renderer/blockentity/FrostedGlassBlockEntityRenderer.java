@@ -40,6 +40,7 @@ import static org.lwjgl.opengl.GL12.GL_BGRA;
 import static org.lwjgl.opengl.GL12.GL_UNSIGNED_INT_8_8_8_8_REV;
 
 public class FrostedGlassBlockEntityRenderer implements BlockEntityRenderer<FrostedGlassBlockEntity> {
+    private static int textureID;
     private static final RenderType RENDER_TYPE = RenderType
             .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 2097152, true, true, RenderType.CompositeState.builder()
                     .setLightmapState(new RenderStateShard.LightmapStateShard(true))
@@ -48,13 +49,17 @@ public class FrostedGlassBlockEntityRenderer implements BlockEntityRenderer<Fros
                     .setTextureState(new RenderStateShard.EmptyTextureStateShard(() -> {
                         RenderSystem.enableTexture();
 
-                        ByteBuffer bytebuffer = GlUtil.allocateMemory(128 * 128 * 4 * 4);
-                        RenderSystem.readPixels(0, 0, 128, 128, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, bytebuffer);
-                        int id = GlStateManager._genTexture();
-                        RenderSystem.bindTextureForSetup(id);
-                        TextureUtil.initTexture(bytebuffer.asIntBuffer(), 128, 128);
-                        RenderSystem.setShaderTexture(0, id);
+                        var height = Minecraft.getInstance().getWindow().getHeight();
+                        var width = Minecraft.getInstance().getWindow().getWidth();
+                        ByteBuffer bytebuffer = GlUtil.allocateMemory(width * height * 4 * 4);
+                        RenderSystem.readPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, bytebuffer);
+                        textureID = GlStateManager._genTexture(); // TODO: 毎回 allocate しない
+                        RenderSystem.bindTextureForSetup(textureID);
+                        TextureUtil.initTexture(bytebuffer.asIntBuffer(), width, height);
+                        RenderSystem.setShaderTexture(0, textureID);
+                        GlUtil.freeMemory(bytebuffer);
                     }, () -> {
+                        TextureUtil.releaseTextureId(textureID);
                     }))
                     .setTransparencyState(new RenderStateShard.TransparencyStateShard("translucent_transparency", () -> {
                         RenderSystem.enableBlend();
