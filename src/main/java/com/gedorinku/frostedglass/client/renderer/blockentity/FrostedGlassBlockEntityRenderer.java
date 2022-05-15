@@ -3,6 +3,8 @@ package com.gedorinku.frostedglass.client.renderer.blockentity;
 import com.gedorinku.frostedglass.FrostedGlassMod;
 import com.gedorinku.frostedglass.block.entity.FrostedGlassBlockEntity;
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.GlUtil;
+import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -34,23 +36,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import static org.lwjgl.opengl.GL12.GL_BGRA;
+import static org.lwjgl.opengl.GL12.GL_UNSIGNED_INT_8_8_8_8_REV;
+
 public class FrostedGlassBlockEntityRenderer implements BlockEntityRenderer<FrostedGlassBlockEntity> {
     private static final RenderType RENDER_TYPE = RenderType
             .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 2097152, true, true, RenderType.CompositeState.builder()
                     .setLightmapState(new RenderStateShard.LightmapStateShard(true))
                     .setShaderState(new RenderStateShard.ShaderStateShard(() -> FrostedGlassMod.FROSTED_GLASS_BLOCK_ENTITY_SHADER))
-                    .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation( "textures/block/glass.png"), false, true))
-//                    .setTextureState(new RenderStateShard.EmptyTextureStateShard(() -> {
-//                        RenderSystem.enableTexture();
-//
-//                        ByteBuffer bytebuffer = GlUtil.allocateMemory(128 * 128 * 4 * 4);
-//                        RenderSystem.readPixels(0, 0, 128, 128, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, bytebuffer);
-//                        int id = GlStateManager._genTexture();
-//                        RenderSystem.bindTextureForSetup(id);
-//                        TextureUtil.initTexture(bytebuffer.asIntBuffer(), 128, 128);
-//                        RenderSystem.setShaderTexture(0, id);
-//                    }, () -> {
-//                    }))
+//                    .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation( "textures/block/glass.png"), false, true))
+                    .setTextureState(new RenderStateShard.EmptyTextureStateShard(() -> {
+                        RenderSystem.enableTexture();
+
+                        ByteBuffer bytebuffer = GlUtil.allocateMemory(128 * 128 * 4 * 4);
+                        RenderSystem.readPixels(0, 0, 128, 128, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, bytebuffer);
+                        int id = GlStateManager._genTexture();
+                        RenderSystem.bindTextureForSetup(id);
+                        TextureUtil.initTexture(bytebuffer.asIntBuffer(), 128, 128);
+                        RenderSystem.setShaderTexture(0, id);
+                    }, () -> {
+                    }))
                     .setTransparencyState(new RenderStateShard.TransparencyStateShard("translucent_transparency", () -> {
                         RenderSystem.enableBlend();
                         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
@@ -163,7 +168,7 @@ public class FrostedGlassBlockEntityRenderer implements BlockEntityRenderer<Fros
             final int U_LOCATION = 16;
             final int V_LOCATION = 20;
             final var U = new float[]{0.0f, 0.0f, 1.0f, 1.0f};
-            final var V = new float[]{ 0.0f, 1.0f, 1.0f, 0.0f};
+            final var V = new float[]{1.0f, 0.0f, 0.0f, 1.0f};
             for (int vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
                 final int offset = vertexIndex * byteBuffer.capacity() / VERTEX_COUNT;
                 byteBuffer.putFloat(offset + U_LOCATION, U[vertexIndex]);
