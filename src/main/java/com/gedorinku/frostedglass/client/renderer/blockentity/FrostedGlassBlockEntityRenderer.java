@@ -18,6 +18,8 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.world.level.Level;
 
 import java.nio.ByteBuffer;
@@ -32,7 +34,6 @@ public class FrostedGlassBlockEntityRenderer implements BlockEntityRenderer<Fros
             .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 2097152, true, true, RenderType.CompositeState.builder()
                     .setLightmapState(new RenderStateShard.LightmapStateShard(true))
                     .setShaderState(new RenderStateShard.ShaderStateShard(() -> FrostedGlassMod.FROSTED_GLASS_BLOCK_ENTITY_SHADER))
-//                    .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation( "textures/block/glass.png"), false, true))
                     .setTextureState(new RenderStateShard.EmptyTextureStateShard(() -> {
                         RenderSystem.enableTexture();
 
@@ -43,8 +44,12 @@ public class FrostedGlassBlockEntityRenderer implements BlockEntityRenderer<Fros
                         textureID = GlStateManager._genTexture(); // TODO: 毎回 allocate しない
                         RenderSystem.bindTextureForSetup(textureID);
                         TextureUtil.initTexture(bytebuffer.asIntBuffer(), width, height);
-                        RenderSystem.setShaderTexture(0, textureID);
+                        RenderSystem.setShaderTexture(1, textureID);
                         GlUtil.freeMemory(bytebuffer);
+
+                        TextureManager textureManager = Minecraft.getInstance().getTextureManager();
+                        textureManager.getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, true);
+                        RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
                     }, () -> {
                         TextureUtil.releaseTextureId(textureID);
                     }))
