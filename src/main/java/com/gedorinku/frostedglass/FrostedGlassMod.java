@@ -5,21 +5,21 @@ import com.gedorinku.frostedglass.block.entity.FrostedGlassBlockEntity;
 import com.gedorinku.frostedglass.client.renderer.blockentity.FrostedGlassBlockEntityRenderer;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.logging.LogUtils;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.Material;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.ForgeRenderTypes;
 import net.minecraftforge.client.event.RegisterShadersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
@@ -27,7 +27,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -44,6 +43,9 @@ public class FrostedGlassMod {
 
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, ID);
     public static final RegistryObject<Block> FROSTED_GLASS_BLOCK = BLOCKS.register("frosted_glass", () -> new FrostedGlassBlock(BlockBehaviour.Properties.of(Material.GLASS).strength(50.0F, 2000.0F).noOcclusion().noDrops()));
+
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, ID);
+    public static final RegistryObject<Item> FROSTED_GLASS_BLOCK_ITEM = ITEMS.register("frosted_glass", () -> new BlockItem(FROSTED_GLASS_BLOCK.get(), new Item.Properties()));
 
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, ID);
     public static final RegistryObject<BlockEntityType<FrostedGlassBlockEntity>> FROSTED_GLASS_BLOCK_ENTITY = BLOCK_ENTITIES.register("frosted_glass", () -> BlockEntityType.Builder.of(FrostedGlassBlockEntity::new, FROSTED_GLASS_BLOCK.get()).build(null));
@@ -65,6 +67,7 @@ public class FrostedGlassMod {
 
         BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
         BLOCK_ENTITIES.register(FMLJavaModLoadingContext.get().getModEventBus());
+        ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
     }
 
     private void setup(final FMLCommonSetupEvent event) {
@@ -105,6 +108,7 @@ public class FrostedGlassMod {
             LOGGER.info("HELLO from Register Block");
         }
     }
+
     @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD, modid = ID)
     public static class ClientSetup {
         @SubscribeEvent
