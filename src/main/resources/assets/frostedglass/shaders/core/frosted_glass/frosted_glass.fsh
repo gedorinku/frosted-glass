@@ -14,37 +14,26 @@ in vec4 normal;
 
 out vec4 fragColor;
 
+const float PI = 3.1415926535897932384626433832795;
+const float STD_DEV = 3.0;
+
+float gaus(vec2 pos) {
+    float r = length(pos);
+
+    return pow(sqrt(2 * PI * STD_DEV * STD_DEV), -2)  * exp(- r * r / (2 * STD_DEV * STD_DEV));
+}
+
 void main() {
     vec2 cord = (frameBufferCoord + vec2(1.0, 1.0)) / 2.0;
     vec2 tFrag = vec2(1.0 / 500.0);
-    vec4 destColor = texture(Sampler1, cord);
+    vec4 destColor = vec4(0.0);
 
-    destColor *= 0.36;
-
-    destColor += texture(Sampler1, cord + vec2(-1.0, 1.0) * tFrag) * 0.04;
-    destColor += texture(Sampler1, cord + vec2(0.0, 1.0) * tFrag) * 0.04;
-    destColor += texture(Sampler1, cord + vec2(1.0, 1.0) * tFrag) * 0.04;
-    destColor += texture(Sampler1, cord + vec2(-1.0, 0.0) * tFrag) * 0.04;
-    destColor += texture(Sampler1, cord + vec2(1.0, 0.0) * tFrag) * 0.04;
-    destColor += texture(Sampler1, cord + vec2(-1.0, -1.0) * tFrag) * 0.04;
-    destColor += texture(Sampler1, cord + vec2(0.0, -1.0) * tFrag) * 0.04;
-    destColor += texture(Sampler1, cord + vec2(1.0, -1.0) * tFrag) * 0.04;
-    destColor += texture(Sampler1, cord + vec2(-2.0, 2.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(-1.0, 2.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(0.0, 2.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(1.0, 2.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(2.0, 2.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(-2.0, 1.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(2.0, 1.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(-2.0, 0.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(2.0, 0.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(-2.0, -1.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(2.0, -1.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(-2.0, -2.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(-1.0, -2.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(0.0, -2.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(1.0, -2.0) * tFrag) * 0.02;
-    destColor += texture(Sampler1, cord + vec2(2.0, -2.0) * tFrag) * 0.02;
+    const int RANGE = int(3 * STD_DEV);
+    for (int dx = -RANGE; dx <= RANGE; dx++) {
+        for (int dy = -RANGE; dy <= RANGE; dy++) {
+            destColor += texture(Sampler1, cord + vec2(dx, dy) * tFrag) * gaus(vec2(dx, dy));
+        }
+    }
 
     vec4 glassColor = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
     fragColor = vec4(destColor.rgb * (1.0 - glassColor.a) + glassColor.rgb * glassColor.a, 1.0);
