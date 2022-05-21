@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "compatibilityLevel": "JAVA_17",
+  "package": "com.gedorinku.frostedglass.mixin",
+  "mixins": [],
+  "client": [
+    "client.renderer.LevelRendererMixin",
+    "client.renderer.RenderTypeMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "refmap": "frostedglass.refmap.json"
+}

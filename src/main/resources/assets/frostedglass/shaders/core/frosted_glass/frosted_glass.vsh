@@ -11,6 +11,7 @@ layout (location = 4) in vec3 Normal;
 
 uniform mat4 ModelViewMat;
 uniform mat4 ProjMat;
+uniform vec3 ChunkOffset;
 
 out vec4 vertexColor;
 noperspective out vec2 frameBufferCoord;
@@ -20,7 +21,7 @@ out vec4 texProj0;
 out vec4 normal;
 
 void main() {
-    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+    gl_Position = ProjMat * ModelViewMat * vec4(Position + ChunkOffset, 1.0);
 
     vertexColor = Color;
     frameBufferCoord = gl_Position.xy / gl_Position.w;
