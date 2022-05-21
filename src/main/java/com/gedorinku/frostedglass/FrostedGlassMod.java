@@ -1,18 +1,16 @@
 package com.gedorinku.frostedglass;
 
 import com.gedorinku.frostedglass.block.FrostedGlassBlock;
-import com.gedorinku.frostedglass.block.entity.FrostedGlassBlockEntity;
-import com.gedorinku.frostedglass.client.renderer.blockentity.FrostedGlassBlockEntityRenderer;
+import com.gedorinku.frostedglass.client.renderer.FrostedGlassBlockRenderType;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.logging.LogUtils;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.Material;
 import net.minecraftforge.api.distmarker.Dist;
@@ -47,8 +45,6 @@ public class FrostedGlassMod {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, ID);
     public static final RegistryObject<Item> FROSTED_GLASS_BLOCK_ITEM = ITEMS.register("frosted_glass", () -> new BlockItem(FROSTED_GLASS_BLOCK.get(), new Item.Properties()));
 
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, ID);
-    public static final RegistryObject<BlockEntityType<FrostedGlassBlockEntity>> FROSTED_GLASS_BLOCK_ENTITY = BLOCK_ENTITIES.register("frosted_glass", () -> BlockEntityType.Builder.of(FrostedGlassBlockEntity::new, FROSTED_GLASS_BLOCK.get()).build(null));
     public static ShaderInstance FROSTED_GLASS_BLOCK_ENTITY_SHADER;
 
     // Directly reference a slf4j logger
@@ -66,7 +62,6 @@ public class FrostedGlassMod {
         MinecraftForge.EVENT_BUS.register(this);
 
         BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
-        BLOCK_ENTITIES.register(FMLJavaModLoadingContext.get().getModEventBus());
         ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
     }
 
@@ -113,7 +108,7 @@ public class FrostedGlassMod {
     public static class ClientSetup {
         @SubscribeEvent
         public static void clientSetup(FMLClientSetupEvent event) {
-            BlockEntityRenderers.register(FROSTED_GLASS_BLOCK_ENTITY.get(), FrostedGlassBlockEntityRenderer::new);
+            ItemBlockRenderTypes.setRenderLayer(FROSTED_GLASS_BLOCK.get(), FrostedGlassBlockRenderType.RENDER_TYPE);
         }
 
         @SubscribeEvent
