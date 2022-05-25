@@ -16,9 +16,4 @@ public class FrostedGlassPaneBlock extends IronBarsBlock {
             .setValue(WEST, false)
             .setValue(WATERLOGGED, false));
     }
-
-    @Override
-    public boolean shouldDisplayFluidOverlay(BlockState state, BlockAndTintGetter level, BlockPos pos, FluidState fluidState) {
-        return true;
-    }
 }
