@@ -1,6 +1,7 @@
 package com.gedorinku.frostedglass;
 
 import com.gedorinku.frostedglass.block.FrostedGlassBlock;
+import com.gedorinku.frostedglass.block.FrostedGlassPaneBlock;
 import com.gedorinku.frostedglass.client.renderer.FrostedGlassBlockRenderType;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.logging.LogUtils;
@@ -41,10 +42,12 @@ public class FrostedGlassMod {
 
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, ID);
     public static final RegistryObject<Block> FROSTED_GLASS_BLOCK = BLOCKS.register("frosted_glass", () -> new FrostedGlassBlock(BlockBehaviour.Properties.of(Material.GLASS).strength(50.0F, 2000.0F).noOcclusion().noDrops()));
+    public static final RegistryObject<Block> FROSTED_GLASS_PANE = BLOCKS.register("frosted_glass_pane", () -> new FrostedGlassPaneBlock(BlockBehaviour.Properties.of(Material.GLASS).strength(50.0F, 2000.0F).noOcclusion().noDrops()));
+
 
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, ID);
     public static final RegistryObject<Item> FROSTED_GLASS_BLOCK_ITEM = ITEMS.register("frosted_glass", () -> new BlockItem(FROSTED_GLASS_BLOCK.get(), new Item.Properties()));
-
+    public static final RegistryObject<Item> FROSTED_GLASS_PANE_ITEM = ITEMS.register("frosted_glass_pane", () -> new BlockItem(FROSTED_GLASS_PANE.get(), new Item.Properties()));
     public static ShaderInstance FROSTED_GLASS_BLOCK_ENTITY_SHADER;
 
     // Directly reference a slf4j logger
@@ -109,6 +112,7 @@ public class FrostedGlassMod {
         @SubscribeEvent
         public static void clientSetup(FMLClientSetupEvent event) {
             ItemBlockRenderTypes.setRenderLayer(FROSTED_GLASS_BLOCK.get(), FrostedGlassBlockRenderType.RENDER_TYPE);
+            ItemBlockRenderTypes.setRenderLayer(FROSTED_GLASS_PANE.get(), FrostedGlassBlockRenderType.RENDER_TYPE);
         }
 
         @SubscribeEvent
