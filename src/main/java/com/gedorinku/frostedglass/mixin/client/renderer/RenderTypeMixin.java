@@ -1,6 +1,6 @@
 package com.gedorinku.frostedglass.mixin.client.renderer;
 
-import com.gedorinku.frostedglass.client.renderer.FrostedGlassBlockRenderType;
+import com.gedorinku.frostedglass.client.renderer.FrostedGlassBlockRenderer;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.client.renderer.RenderType;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,7 +17,7 @@ public abstract class RenderTypeMixin {
     @Inject(method = "chunkBufferLayers", at = @At("RETURN"), cancellable = true)
     private static void chunkBufferLayers(CallbackInfoReturnable<List<RenderType>> cir) {
         var original =  new ArrayList<>(cir.getReturnValue());
-        original.add(FrostedGlassBlockRenderType.RENDER_TYPE);
+        original.add(FrostedGlassBlockRenderer.RENDER_TYPE);
         cir.setReturnValue(ImmutableList.copyOf(original));
     }
 }
