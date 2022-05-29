@@ -33,6 +33,8 @@ public class FrostedGlassBlockRenderer {
                     .setLightmapState(new RenderStateShard.LightmapStateShard(true))
                     .setShaderState(new RenderStateShard.ShaderStateShard(() -> FrostedGlassMod.RENDER_TYPE_FROSTED_GLASS_SHADER))
                     .setTextureState(new RenderStateShard.EmptyTextureStateShard(() -> {
+                        Minecraft.getInstance().getProfiler().push(FrostedGlassMod.ID + ":setTextureStateBeforeRender");
+
                         RenderSystem.enableTexture();
 
                         var height = Minecraft.getInstance().getWindow().getHeight();
@@ -48,8 +50,14 @@ public class FrostedGlassBlockRenderer {
                         TextureManager textureManager = Minecraft.getInstance().getTextureManager();
                         textureManager.getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, true);
                         RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
+
+                        Minecraft.getInstance().getProfiler().pop();
                     }, () -> {
+                        Minecraft.getInstance().getProfiler().push(FrostedGlassMod.ID + ":setTextureStateAfterRender");
+
                         TextureUtil.releaseTextureId(textureID);
+
+                        Minecraft.getInstance().getProfiler().pop();
                     }))
                     .setTransparencyState(new RenderStateShard.TransparencyStateShard("translucent_transparency", () -> {
                         RenderSystem.enableBlend();
@@ -69,19 +77,39 @@ public class FrostedGlassBlockRenderer {
 
                     })).createCompositeState(true));
 
-    public void renderFrostedGlassChunkLayer(ObjectArrayList<LevelRenderer.RenderChunkInfo> renderChunksInFrustum, PoseStack poseStack, double cameraX, double cameraY, double cameraZ, Matrix4f projection) {
-        var renderType = RENDER_TYPE;
+    public void renderFrostedGlassChunkLayer(
+            ObjectArrayList<LevelRenderer.RenderChunkInfo> renderChunksInFrustum,
+            PoseStack poseStack,
+            double cameraX,
+            double cameraY,
+            double cameraZ,
+            Matrix4f projection
+    ) {
+        Minecraft.getInstance().getProfiler().push(FrostedGlassMod.ID + ":frostedGlassChunkLayer");
+
         RenderSystem.assertOnRenderThread();
 
-        Minecraft.getInstance().getProfiler().push("filterempty");
-        Minecraft.getInstance().getProfiler().popPush(() -> {
-            return "render_" + renderType;
-        });
+        renderFrostedGlassBlocksAs(RenderType.cutout(), renderChunksInFrustum, poseStack, cameraX, cameraY, cameraZ, projection);
+        renderFrostedGlassBlocksAs(RENDER_TYPE, renderChunksInFrustum, poseStack, cameraX, cameraY, cameraZ, projection);
+
+        Minecraft.getInstance().getProfiler().pop();
+    }
+
+    private void renderFrostedGlassBlocksAs(
+            RenderType renderType,
+            ObjectArrayList<LevelRenderer.RenderChunkInfo> renderChunksInFrustum,
+            PoseStack poseStack,
+            double cameraX,
+            double cameraY,
+            double cameraZ,
+            Matrix4f projection
+    ) {
         ObjectListIterator<LevelRenderer.RenderChunkInfo> objectlistiterator = renderChunksInFrustum.listIterator(renderChunksInFrustum.size());
-        VertexFormat vertexformat = renderType.format();
         ShaderInstance shaderinstance = RenderSystem.getShader();
 
         Uniform uniform = shaderinstance.CHUNK_OFFSET;
+
+        setupRenderState(renderType, poseStack, projection);
 
         while (true) {
             if (!objectlistiterator.hasPrevious()) {
@@ -90,10 +118,8 @@ public class FrostedGlassBlockRenderer {
 
             LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo1 = objectlistiterator.previous();
             ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = levelrenderer$renderchunkinfo1.chunk;
-            if (!chunkrenderdispatcher$renderchunk.getCompiledChunk().isEmpty(renderType)) {
-                setupRenderState(renderType, poseStack, projection);
-
-                VertexBuffer vertexbuffer = chunkrenderdispatcher$renderchunk.getBuffer(renderType);
+            if (!chunkrenderdispatcher$renderchunk.getCompiledChunk().isEmpty(RENDER_TYPE)) {
+                VertexBuffer vertexbuffer = chunkrenderdispatcher$renderchunk.getBuffer(RENDER_TYPE);
                 BlockPos blockpos = chunkrenderdispatcher$renderchunk.getOrigin();
                 if (uniform != null) {
                     uniform.set((float) ((double) blockpos.getX() - cameraX), (float) ((double) blockpos.getY() - cameraY), (float) ((double) blockpos.getZ() - cameraZ));
@@ -101,19 +127,17 @@ public class FrostedGlassBlockRenderer {
                 }
 
                 vertexbuffer.drawChunkLayer();
-
-                shaderinstance.clear();
-                VertexBuffer.unbind();
-                VertexBuffer.unbindVertexArray();
-                renderType.clearRenderState();
             }
         }
+
+        shaderinstance.clear();
+        VertexBuffer.unbind();
+        VertexBuffer.unbindVertexArray();
+        renderType.clearRenderState();
 
         if (uniform != null) {
             uniform.set(Vector3f.ZERO);
         }
-
-        Minecraft.getInstance().getProfiler().pop();
     }
 
     private void setupRenderState(RenderType renderType, PoseStack poseStack, Matrix4f projection) {
