@@ -2,7 +2,6 @@ package com.gedorinku.frostedglass.client.renderer;
 
 import com.gedorinku.frostedglass.FrostedGlassMod;
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.GlUtil;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -20,14 +19,21 @@ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
+import org.lwjgl.opengl.GL21;
 
-import java.nio.ByteBuffer;
-
-import static org.lwjgl.opengl.GL12.GL_BGRA;
-import static org.lwjgl.opengl.GL12.GL_UNSIGNED_INT_8_8_8_8_REV;
+import static org.lwjgl.opengl.GL21.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL21.GL_BGRA;
+import static org.lwjgl.opengl.GL21.GL_UNSIGNED_INT_8_8_8_8_REV;
+import static org.lwjgl.opengl.GL21.GL_DYNAMIC_COPY;
+import static org.lwjgl.opengl.GL21.GL_PIXEL_PACK_BUFFER;
+import static org.lwjgl.opengl.GL21.GL_PIXEL_UNPACK_BUFFER;
 
 public class FrostedGlassBlockRenderer {
-    private static int textureID;
+    private static int textureID = -1;
+    private static int pixelBufferObjectID = -1;
+    private static int lastWindowWidth = -1;
+    private static int lastWindowHeight = -1;
+
     public static final RenderType RENDER_TYPE = RenderType
             .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 2097152, true, true, RenderType.CompositeState.builder()
                     .setLightmapState(new RenderStateShard.LightmapStateShard(true))
@@ -37,17 +43,24 @@ public class FrostedGlassBlockRenderer {
 
                         RenderSystem.enableTexture();
 
-                        var height = Minecraft.getInstance().getWindow().getHeight();
                         var width = Minecraft.getInstance().getWindow().getWidth();
-                        ByteBuffer bytebuffer = GlUtil.allocateMemory(width * height * 4 * 4);
+                        var height = Minecraft.getInstance().getWindow().getHeight();
+                        if (lastWindowWidth != width || lastWindowHeight != height) {
+                            initializePixelBufferObject(width, height);
+                            lastWindowWidth = width;
+                            lastWindowHeight = height;
+                        }
+
                         Minecraft.getInstance().getProfiler().push(FrostedGlassMod.ID + ":readPixels");
-                        RenderSystem.readPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, bytebuffer);
+                        RenderSystem.glBindBuffer(GL_PIXEL_PACK_BUFFER, () -> pixelBufferObjectID);
+                        GL21.glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
                         Minecraft.getInstance().getProfiler().pop();
-                        textureID = GlStateManager._genTexture(); // TODO: 毎回 allocate しない
+
+                        RenderSystem.glBindBuffer(GL_PIXEL_UNPACK_BUFFER, () -> pixelBufferObjectID);
                         RenderSystem.bindTextureForSetup(textureID);
-                        TextureUtil.initTexture(bytebuffer.asIntBuffer(), width, height);
+                        GlStateManager._texSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
                         RenderSystem.setShaderTexture(1, textureID);
-                        GlUtil.freeMemory(bytebuffer);
+                        RenderSystem.glBindBuffer(GL_PIXEL_UNPACK_BUFFER, () -> 0);
 
                         TextureManager textureManager = Minecraft.getInstance().getTextureManager();
                         textureManager.getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, true);
@@ -55,11 +68,6 @@ public class FrostedGlassBlockRenderer {
 
                         Minecraft.getInstance().getProfiler().pop();
                     }, () -> {
-                        Minecraft.getInstance().getProfiler().push(FrostedGlassMod.ID + ":setTextureStateAfterRender");
-
-                        TextureUtil.releaseTextureId(textureID);
-
-                        Minecraft.getInstance().getProfiler().pop();
                     }))
                     .setTransparencyState(new RenderStateShard.TransparencyStateShard("translucent_transparency", () -> {
                         RenderSystem.enableBlend();
@@ -78,6 +86,22 @@ public class FrostedGlassBlockRenderer {
                         }
 
                     })).createCompositeState(true));
+
+    private static void initializePixelBufferObject(int width, int height) {
+        if (textureID == -1) {
+            textureID = GlStateManager._genTexture();
+        }
+
+        RenderSystem.bindTextureForSetup(textureID);
+        TextureUtil.initTexture(null, width, height);
+
+        if (pixelBufferObjectID == -1) {
+            pixelBufferObjectID = GlStateManager._glGenBuffers();
+        }
+
+        RenderSystem.glBindBuffer(GL_PIXEL_UNPACK_BUFFER, () -> pixelBufferObjectID);
+        GlStateManager._glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4 * 4, GL_DYNAMIC_COPY);
+    }
 
     public void renderFrostedGlassChunkLayer(
             ObjectArrayList<LevelRenderer.RenderChunkInfo> renderChunksInFrustum,
