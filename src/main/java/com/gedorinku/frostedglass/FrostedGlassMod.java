@@ -2,7 +2,7 @@ package com.gedorinku.frostedglass;
 
 import com.gedorinku.frostedglass.block.FrostedGlassBlock;
 import com.gedorinku.frostedglass.block.FrostedGlassPaneBlock;
-import com.gedorinku.frostedglass.client.renderer.FrostedGlassBlockRenderType;
+import com.gedorinku.frostedglass.client.renderer.FrostedGlassBlockRenderer;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -111,8 +111,8 @@ public class FrostedGlassMod {
     public static class ClientSetup {
         @SubscribeEvent
         public static void clientSetup(FMLClientSetupEvent event) {
-            ItemBlockRenderTypes.setRenderLayer(FROSTED_GLASS_BLOCK.get(), FrostedGlassBlockRenderType.RENDER_TYPE);
-            ItemBlockRenderTypes.setRenderLayer(FROSTED_GLASS_PANE_BLOCK.get(), FrostedGlassBlockRenderType.RENDER_TYPE);
+            ItemBlockRenderTypes.setRenderLayer(FROSTED_GLASS_BLOCK.get(), FrostedGlassBlockRenderer.RENDER_TYPE);
+            ItemBlockRenderTypes.setRenderLayer(FROSTED_GLASS_PANE_BLOCK.get(), FrostedGlassBlockRenderer.RENDER_TYPE);
         }
 
         @SubscribeEvent
