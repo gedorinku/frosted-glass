@@ -40,7 +40,9 @@ public class FrostedGlassBlockRenderer {
                         var height = Minecraft.getInstance().getWindow().getHeight();
                         var width = Minecraft.getInstance().getWindow().getWidth();
                         ByteBuffer bytebuffer = GlUtil.allocateMemory(width * height * 4 * 4);
+                        Minecraft.getInstance().getProfiler().push(FrostedGlassMod.ID + ":readPixels");
                         RenderSystem.readPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, bytebuffer);
+                        Minecraft.getInstance().getProfiler().pop();
                         textureID = GlStateManager._genTexture(); // TODO: 毎回 allocate しない
                         RenderSystem.bindTextureForSetup(textureID);
                         TextureUtil.initTexture(bytebuffer.asIntBuffer(), width, height);
