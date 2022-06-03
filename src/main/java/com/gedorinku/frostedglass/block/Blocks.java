@@ -16,7 +16,6 @@ import net.minecraftforge.registries.RegistryObject;
 public class Blocks {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, FrostedGlassMod.ID);
     public static final RegistryObject<Block> FROSTED_GLASS_BLOCK = BLOCKS.register("frosted_glass", () -> new FrostedGlassBlock(BlockBehaviour.Properties.of(Material.GLASS).strength(0.3F).sound(SoundType.GLASS).noOcclusion().isValidSpawn(Blocks::never).isRedstoneConductor(Blocks::never).isSuffocating(Blocks::never).isViewBlocking(Blocks::never)));
-
     public static final RegistryObject<Block> FROSTED_GLASS_PANE_BLOCK = BLOCKS.register("frosted_glass_pane", () -> new FrostedGlassPaneBlock(BlockBehaviour.Properties.of(Material.GLASS).strength(0.3F).sound(SoundType.GLASS).noOcclusion()));
 
     private static boolean never(BlockState state, BlockGetter blockGetter, BlockPos pos, EntityType<?> entityType) {
