@@ -5,6 +5,7 @@
   "package": "com.gedorinku.frostedglass.mixin",
   "mixins": [],
   "client": [
+    "client.renderer.ItemBlockRenderTypesMixin",
     "client.renderer.LevelRendererMixin",
     "client.renderer.RenderTypeMixin"
   ],
