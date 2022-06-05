@@ -6,6 +6,9 @@ uniform sampler2D Sampler1;
 uniform vec4 ColorModulator;
 
 uniform ivec2 WindowSize;
+uniform int BlurDirection;
+
+const int VERTICAL = 0;
 
 in vec4 vertexColor;
 noperspective in vec2 frameBufferCoord;
@@ -31,10 +34,16 @@ void main() {
     vec4 destColor = vec4(0.0);
 
     int range = int(3 * stdDev);
-    for (int dx = -range; dx <= range; dx++) {
-        for (int dy = -range; dy <= range; dy++) {
-            destColor += texture(Sampler1, cord + vec2(dx, dy) * tFrag) * gaus(vec2(dx, dy));
-        }
+    vec2 step;
+    if (BlurDirection == VERTICAL) {
+        step = vec2(0.0, 1.0);
+    } else {
+        step = vec2(1.0, 0.0);
+    }
+
+    for (int i = -range; i <= range; i++) {
+        vec2 d = step * float(i);
+        destColor += texture(Sampler1, cord + d * tFrag) * gaus(d);
     }
 
     vec4 glassColor = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;

@@ -113,6 +113,17 @@ public class FrostedGlassBlockRenderer {
         Minecraft.getInstance().getProfiler().pop();
     }
 
+    private enum BlurDirection {
+        VERTICAL(0),
+        HORIZONTAL(1);
+
+        public final int shaderEnum;
+
+        BlurDirection(int shaderEnum) {
+            this.shaderEnum = shaderEnum;
+        }
+    }
+
     private void renderFrostedGlassBlocksAs(
             RenderType renderType,
             ObjectArrayList<LevelRenderer.RenderChunkInfo> renderChunksInFrustum,
@@ -144,7 +155,15 @@ public class FrostedGlassBlockRenderer {
                     uniform.upload();
                 }
 
-                vertexbuffer.drawChunkLayer();
+                var blurDirectionUniform = shaderinstance.getUniform("BlurDirection");
+                if (blurDirectionUniform != null) {
+                    for (var dir : BlurDirection.values()) {
+                        blurDirectionUniform.set(dir.shaderEnum);
+                        vertexbuffer.drawChunkLayer();
+                    }
+                } else {
+                    vertexbuffer.drawChunkLayer();
+                }
             }
         }
 
