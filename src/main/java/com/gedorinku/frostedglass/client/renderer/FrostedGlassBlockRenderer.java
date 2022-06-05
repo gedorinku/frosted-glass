@@ -27,6 +27,8 @@ public class FrostedGlassBlockRenderer {
     private static int lastWindowWidth = -1;
     private static int lastWindowHeight = -1;
 
+    private static final String WINDOW_SIZE = "WindowSize";
+
     public static final RenderType RENDER_TYPE = RenderType
             .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 2097152, true, true, RenderType.CompositeState.builder()
                     .setLightmapState(new RenderStateShard.LightmapStateShard(true))
@@ -201,6 +203,13 @@ public class FrostedGlassBlockRenderer {
 
         if (shaderinstance.GAME_TIME != null) {
             shaderinstance.GAME_TIME.set(RenderSystem.getShaderGameTime());
+        }
+
+        var windowSizeUniform = shaderinstance.getUniform(WINDOW_SIZE);
+        if (windowSizeUniform != null) {
+            var width = Minecraft.getInstance().getWindow().getWidth();
+            var height = Minecraft.getInstance().getWindow().getHeight();
+            windowSizeUniform.set(width, height);
         }
 
         RenderSystem.setupShaderLights(shaderinstance);
