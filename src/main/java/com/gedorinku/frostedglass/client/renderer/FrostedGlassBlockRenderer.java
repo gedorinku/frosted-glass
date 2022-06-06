@@ -20,12 +20,16 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
 
+import javax.annotation.Nullable;
+
 import static org.lwjgl.opengl.GL21.GL_TEXTURE_2D;
 
 public class FrostedGlassBlockRenderer {
     private static int textureID = -1;
     private static int lastWindowWidth = -1;
     private static int lastWindowHeight = -1;
+
+    private static final String WINDOW_SIZE = "WindowSize";
 
     public static final RenderType RENDER_TYPE = RenderType
             .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 2097152, true, true, RenderType.CompositeState.builder()
@@ -105,10 +109,24 @@ public class FrostedGlassBlockRenderer {
 
         RenderSystem.assertOnRenderThread();
 
-        renderFrostedGlassBlocksAs(RenderType.cutout(), renderChunksInFrustum, poseStack, cameraX, cameraY, cameraZ, projection);
-        renderFrostedGlassBlocksAs(RENDER_TYPE, renderChunksInFrustum, poseStack, cameraX, cameraY, cameraZ, projection);
+        renderFrostedGlassBlocksAs(RenderType.cutout(), renderChunksInFrustum, poseStack, cameraX, cameraY, cameraZ, projection, null);
+        for (var dir : new BlurDirection[]{BlurDirection.VERTICAL, BlurDirection.HORIZONTAL}) {
+            renderFrostedGlassBlocksAs(RENDER_TYPE, renderChunksInFrustum, poseStack, cameraX, cameraY, cameraZ, projection, dir);
+        }
 
         Minecraft.getInstance().getProfiler().pop();
+    }
+
+    private enum BlurDirection {
+        VERTICAL_AND_HORIZONTAL(0),
+        VERTICAL(1),
+        HORIZONTAL(2);
+
+        public final int shaderEnum;
+
+        BlurDirection(int shaderEnum) {
+            this.shaderEnum = shaderEnum;
+        }
     }
 
     private void renderFrostedGlassBlocksAs(
@@ -118,14 +136,16 @@ public class FrostedGlassBlockRenderer {
             double cameraX,
             double cameraY,
             double cameraZ,
-            Matrix4f projection
+            Matrix4f projection,
+            @Nullable BlurDirection blurDirection
     ) {
+        setupRenderState(renderType, poseStack, projection);
+
         ObjectListIterator<LevelRenderer.RenderChunkInfo> objectlistiterator = renderChunksInFrustum.listIterator(renderChunksInFrustum.size());
         ShaderInstance shaderinstance = RenderSystem.getShader();
 
-        Uniform uniform = shaderinstance.CHUNK_OFFSET;
-
-        setupRenderState(renderType, poseStack, projection);
+        var chunkOffsetUniform = shaderinstance.CHUNK_OFFSET;
+        var blurDirectionUniform = shaderinstance.getUniform("BlurDirection");
 
         while (true) {
             if (!objectlistiterator.hasPrevious()) {
@@ -137,9 +157,14 @@ public class FrostedGlassBlockRenderer {
             if (!chunkrenderdispatcher$renderchunk.getCompiledChunk().isEmpty(RENDER_TYPE)) {
                 VertexBuffer vertexbuffer = chunkrenderdispatcher$renderchunk.getBuffer(RENDER_TYPE);
                 BlockPos blockpos = chunkrenderdispatcher$renderchunk.getOrigin();
-                if (uniform != null) {
-                    uniform.set((float) ((double) blockpos.getX() - cameraX), (float) ((double) blockpos.getY() - cameraY), (float) ((double) blockpos.getZ() - cameraZ));
-                    uniform.upload();
+                if (chunkOffsetUniform != null) {
+                    chunkOffsetUniform.set((float) ((double) blockpos.getX() - cameraX), (float) ((double) blockpos.getY() - cameraY), (float) ((double) blockpos.getZ() - cameraZ));
+                    chunkOffsetUniform.upload();
+                }
+
+                if (blurDirectionUniform != null && blurDirection != null) {
+                    blurDirectionUniform.set(blurDirection.shaderEnum);
+                    blurDirectionUniform.upload();
                 }
 
                 vertexbuffer.drawChunkLayer();
@@ -151,8 +176,12 @@ public class FrostedGlassBlockRenderer {
         VertexBuffer.unbindVertexArray();
         renderType.clearRenderState();
 
-        if (uniform != null) {
-            uniform.set(Vector3f.ZERO);
+        if (chunkOffsetUniform != null) {
+            chunkOffsetUniform.set(Vector3f.ZERO);
+        }
+
+        if (blurDirectionUniform != null) {
+            blurDirectionUniform.set(BlurDirection.VERTICAL_AND_HORIZONTAL.shaderEnum);
         }
     }
 
@@ -201,6 +230,13 @@ public class FrostedGlassBlockRenderer {
 
         if (shaderinstance.GAME_TIME != null) {
             shaderinstance.GAME_TIME.set(RenderSystem.getShaderGameTime());
+        }
+
+        var windowSizeUniform = shaderinstance.getUniform(WINDOW_SIZE);
+        if (windowSizeUniform != null) {
+            var width = Minecraft.getInstance().getWindow().getWidth();
+            var height = Minecraft.getInstance().getWindow().getHeight();
+            windowSizeUniform.set(width, height);
         }
 
         RenderSystem.setupShaderLights(shaderinstance);
