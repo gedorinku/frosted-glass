@@ -3,7 +3,6 @@ package com.gedorinku.frostedglass.client.renderer;
 import com.gedorinku.frostedglass.FrostedGlassMod;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
-import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Matrix4f;
@@ -30,6 +29,7 @@ public class FrostedGlassBlockRenderer {
     private static int lastWindowHeight = -1;
 
     private static final String WINDOW_SIZE = "WindowSize";
+    private static final String BLUR_DIRECTION = "BlurDirection";
 
     public static final RenderType RENDER_TYPE = RenderType
             .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 2097152, true, true, RenderType.CompositeState.builder()
@@ -97,6 +97,18 @@ public class FrostedGlassBlockRenderer {
         TextureUtil.initTexture(null, width, height);
     }
 
+    private enum BlurDirection {
+        VERTICAL_AND_HORIZONTAL(0),
+        VERTICAL(1),
+        HORIZONTAL(2);
+
+        public final int shaderEnum;
+
+        BlurDirection(int shaderEnum) {
+            this.shaderEnum = shaderEnum;
+        }
+    }
+
     public void renderFrostedGlassChunkLayer(
             ObjectArrayList<LevelRenderer.RenderChunkInfo> renderChunksInFrustum,
             PoseStack poseStack,
@@ -117,18 +129,6 @@ public class FrostedGlassBlockRenderer {
         Minecraft.getInstance().getProfiler().pop();
     }
 
-    private enum BlurDirection {
-        VERTICAL_AND_HORIZONTAL(0),
-        VERTICAL(1),
-        HORIZONTAL(2);
-
-        public final int shaderEnum;
-
-        BlurDirection(int shaderEnum) {
-            this.shaderEnum = shaderEnum;
-        }
-    }
-
     private void renderFrostedGlassBlocksAs(
             RenderType renderType,
             ObjectArrayList<LevelRenderer.RenderChunkInfo> renderChunksInFrustum,
@@ -139,13 +139,12 @@ public class FrostedGlassBlockRenderer {
             Matrix4f projection,
             @Nullable BlurDirection blurDirection
     ) {
-        setupRenderState(renderType, poseStack, projection);
+        setupRenderState(renderType, poseStack, projection, blurDirection);
 
         ObjectListIterator<LevelRenderer.RenderChunkInfo> objectlistiterator = renderChunksInFrustum.listIterator(renderChunksInFrustum.size());
         ShaderInstance shaderinstance = RenderSystem.getShader();
 
         var chunkOffsetUniform = shaderinstance.CHUNK_OFFSET;
-        var blurDirectionUniform = shaderinstance.getUniform("BlurDirection");
 
         while (true) {
             if (!objectlistiterator.hasPrevious()) {
@@ -162,11 +161,6 @@ public class FrostedGlassBlockRenderer {
                     chunkOffsetUniform.upload();
                 }
 
-                if (blurDirectionUniform != null && blurDirection != null) {
-                    blurDirectionUniform.set(blurDirection.shaderEnum);
-                    blurDirectionUniform.upload();
-                }
-
                 vertexbuffer.drawChunkLayer();
             }
         }
@@ -180,12 +174,13 @@ public class FrostedGlassBlockRenderer {
             chunkOffsetUniform.set(Vector3f.ZERO);
         }
 
+        var blurDirectionUniform = shaderinstance.getUniform(BLUR_DIRECTION);
         if (blurDirectionUniform != null) {
             blurDirectionUniform.set(BlurDirection.VERTICAL_AND_HORIZONTAL.shaderEnum);
         }
     }
 
-    private void setupRenderState(RenderType renderType, PoseStack poseStack, Matrix4f projection) {
+    private void setupRenderState(RenderType renderType, PoseStack poseStack, Matrix4f projection, @Nullable BlurDirection blurDirection) {
         renderType.setupRenderState();
 
         ShaderInstance shaderinstance = RenderSystem.getShader();
@@ -237,6 +232,11 @@ public class FrostedGlassBlockRenderer {
             var width = Minecraft.getInstance().getWindow().getWidth();
             var height = Minecraft.getInstance().getWindow().getHeight();
             windowSizeUniform.set(width, height);
+        }
+
+        var blurDirectionUniform = shaderinstance.getUniform(BLUR_DIRECTION);
+        if (blurDirectionUniform != null && blurDirection != null) {
+            blurDirectionUniform.set(blurDirection.shaderEnum);
         }
 
         RenderSystem.setupShaderLights(shaderinstance);
