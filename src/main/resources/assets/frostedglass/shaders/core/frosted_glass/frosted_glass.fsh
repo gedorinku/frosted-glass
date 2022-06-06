@@ -8,7 +8,9 @@ uniform vec4 ColorModulator;
 uniform ivec2 WindowSize;
 uniform int BlurDirection;
 
-const int VERTICAL = 0;
+const int VERTICAL_AND_HORIZONTAL = 0;
+const int VERTICAL = 1;
+const int HORIZONTAL = 2;
 
 in vec4 vertexColor;
 noperspective in vec2 frameBufferCoord;
@@ -33,18 +35,34 @@ void main() {
     vec2 tFrag = vec2(1.0) / WindowSize;
     vec4 destColor = vec4(0.0);
 
-    int range = int(3 * stdDev);
-    vec2 step;
-    if (BlurDirection == VERTICAL) {
-        step = vec2(0.0, 1.0);
+    int radius = int(3 * stdDev);
+    int diamerter = 2 * radius;
+    // 手に持ったときや GUI に表示するときだけガウシアンブラーを2回に分ける実装ができていないので、とりあえず雑に品質を落としている。
+    int sampleSize = BlurDirection == VERTICAL_AND_HORIZONTAL ? diamerter / 4 : diamerter / 2;
+    float step = float(diamerter) / max(1.0, sampleSize - 1.0);
+    float sum = 0.0;
+
+    if (BlurDirection == VERTICAL_AND_HORIZONTAL) {
+        for (int i = 0; i < sampleSize; i++) {
+            for (int j = 0; j < sampleSize; j++) {
+                vec2 d = vec2(-radius + i * step, -radius + j * step);
+                float g = gaus(d);
+                sum += g;
+                destColor += texture(Sampler1, cord + d * tFrag) * g;
+            }
+        }
     } else {
-        step = vec2(1.0, 0.0);
+        vec2 dir = BlurDirection == VERTICAL ? vec2(0.0, 1.0) : vec2(1.0, 0.0);
+
+        for (int i = 0; i < sampleSize; i++) {
+            vec2 d = (-radius + i * step) * dir;
+            float g = gaus(d);
+            sum += g;
+            destColor += texture(Sampler1, cord + d * tFrag) * g;
+        }
     }
 
-    for (int i = -range; i <= range; i++) {
-        vec2 d = step * float(i);
-        destColor += texture(Sampler1, cord + d * tFrag) * gaus(d);
-    }
+    destColor *= 1.0 / sum;
 
     vec4 glassColor = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
     fragColor = vec4(destColor.rgb * (1.0 - glassColor.a) + glassColor.rgb * glassColor.a, 1.0);
