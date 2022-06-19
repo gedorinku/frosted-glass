@@ -58,6 +58,10 @@ public abstract class ItemRendererMixin {
         for (var dir : new FrostedGlassBlockRenderer.BlurDirection[]{FrostedGlassBlockRenderer.BlurDirection.VERTICAL, FrostedGlassBlockRenderer.BlurDirection.HORIZONTAL}) {
             FrostedGlassBlockRenderer.setBlurDirection(shaderInstance, dir);
             render(itemStack, transformType, p_174246_, poseStack, multiBufferSource, p_174250_, p_174251_, bakedModel);
+
+            if (multiBufferSource instanceof MultiBufferSource.BufferSource) {
+                ((MultiBufferSource.BufferSource) multiBufferSource).endBatch(FrostedGlassBlockRenderer.RENDER_TYPE);
+            }
         }
 
         FrostedGlassBlockRenderer.setBlurDirection(shaderInstance, FrostedGlassBlockRenderer.BlurDirection.VERTICAL_AND_HORIZONTAL);
