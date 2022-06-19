@@ -6,6 +6,7 @@
   "mixins": [],
   "client": [
     "client.renderer.ItemBlockRenderTypesMixin",
+    "client.renderer.ItemRendererMixin",
     "client.renderer.LevelRendererMixin",
     "client.renderer.RenderTypeMixin"
   ],

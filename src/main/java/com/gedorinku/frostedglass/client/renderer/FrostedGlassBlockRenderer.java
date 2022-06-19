@@ -97,7 +97,7 @@ public class FrostedGlassBlockRenderer {
         TextureUtil.initTexture(null, width, height);
     }
 
-    private enum BlurDirection {
+    public enum BlurDirection {
         VERTICAL_AND_HORIZONTAL(0),
         VERTICAL(1),
         HORIZONTAL(2);
@@ -174,10 +174,7 @@ public class FrostedGlassBlockRenderer {
             chunkOffsetUniform.set(Vector3f.ZERO);
         }
 
-        var blurDirectionUniform = shaderinstance.getUniform(BLUR_DIRECTION);
-        if (blurDirectionUniform != null) {
-            blurDirectionUniform.set(BlurDirection.VERTICAL_AND_HORIZONTAL.shaderEnum);
-        }
+        setBlurDirection(shaderinstance, BlurDirection.VERTICAL_AND_HORIZONTAL);
     }
 
     private void setupRenderState(RenderType renderType, PoseStack poseStack, Matrix4f projection, @Nullable BlurDirection blurDirection) {
@@ -234,12 +231,16 @@ public class FrostedGlassBlockRenderer {
             windowSizeUniform.set(width, height);
         }
 
-        var blurDirectionUniform = shaderinstance.getUniform(BLUR_DIRECTION);
-        if (blurDirectionUniform != null && blurDirection != null) {
-            blurDirectionUniform.set(blurDirection.shaderEnum);
-        }
+        setBlurDirection(shaderinstance, blurDirection);
 
         RenderSystem.setupShaderLights(shaderinstance);
         shaderinstance.apply();
+    }
+
+    public static void setBlurDirection(ShaderInstance shaderInstance, BlurDirection blurDirection) {
+        var blurDirectionUniform = shaderInstance.getUniform(BLUR_DIRECTION);
+        if (blurDirectionUniform != null && blurDirection != null) {
+            blurDirectionUniform.set(blurDirection.shaderEnum);
+        }
     }
 }

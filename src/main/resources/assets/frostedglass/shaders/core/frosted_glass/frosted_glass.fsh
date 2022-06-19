@@ -37,7 +37,7 @@ void main() {
 
     int radius = int(3 * stdDev);
     int diamerter = 2 * radius;
-    // 手に持ったときや GUI に表示するときだけガウシアンブラーを2回に分ける実装ができていないので、とりあえず雑に品質を落としている。
+    // GUI に表示するときなどガウシアンブラーを2回に分ける実装が一部できていないので、とりあえず雑に品質を落としている。
     int sampleSize = BlurDirection == VERTICAL_AND_HORIZONTAL ? diamerter / 4 : diamerter / 2;
     float step = float(diamerter) / max(1.0, sampleSize - 1.0);
     float sum = 0.0;
