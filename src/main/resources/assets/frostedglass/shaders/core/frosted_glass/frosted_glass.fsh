@@ -15,7 +15,6 @@ const int HORIZONTAL = 2;
 in vec4 vertexColor;
 noperspective in vec2 frameBufferCoord;
 in vec2 texCoord0;
-in vec2 texCoord2;
 in vec4 texProj0;
 in vec4 normal;
 
