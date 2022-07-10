@@ -121,7 +121,7 @@ public class FrostedGlassBlockRenderer {
 
         RenderSystem.assertOnRenderThread();
 
-        renderFrostedGlassBlocksAs(RenderType.cutout(), renderChunksInFrustum, poseStack, cameraX, cameraY, cameraZ, projection, null);
+        renderFrostedGlassBlocksAs(RenderType.translucent(), renderChunksInFrustum, poseStack, cameraX, cameraY, cameraZ, projection, null);
         for (var dir : new BlurDirection[]{BlurDirection.VERTICAL, BlurDirection.HORIZONTAL}) {
             renderFrostedGlassBlocksAs(RENDER_TYPE, renderChunksInFrustum, poseStack, cameraX, cameraY, cameraZ, projection, dir);
         }
