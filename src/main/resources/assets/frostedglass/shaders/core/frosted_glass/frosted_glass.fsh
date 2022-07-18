@@ -68,6 +68,6 @@ void main() {
         vec4 glassColor = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
         fragColor = vec4(destColor.rgb * (1.0 - glassColor.a) + glassColor.rgb * glassColor.a, 1.0);
     } else {
-        fragColor = destColor;
+        fragColor = vec4(destColor.rgb, 1.0);
     }
 }
