@@ -15,14 +15,13 @@ const int HORIZONTAL = 2;
 in vec4 vertexColor;
 noperspective in vec2 frameBufferCoord;
 in vec2 texCoord0;
-in vec2 texCoord2;
 in vec4 texProj0;
 in vec4 normal;
 
 out vec4 fragColor;
 
 const float PI = 3.1415926535897932384626433832795;
-float stdDev = 12.0 / ((2560 + 1440) / 2.0) * ((WindowSize.x + WindowSize.y) / 2.0);
+float stdDev = 24.0 / ((2560 + 1440) / 2.0) * ((WindowSize.x + WindowSize.y) / 2.0);
 
 float gaus(vec2 pos) {
     float r = length(pos);
@@ -64,6 +63,11 @@ void main() {
 
     destColor *= 1.0 / sum;
 
-    vec4 glassColor = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
-    fragColor = vec4(destColor.rgb * (1.0 - glassColor.a) + glassColor.rgb * glassColor.a, 1.0);
+    // 最後の1回の描画時だけテクスチャを描画する。
+    if (BlurDirection != VERTICAL) {
+        vec4 glassColor = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
+        fragColor = vec4(destColor.rgb * (1.0 - glassColor.a) + glassColor.rgb * glassColor.a, 1.0);
+    } else {
+        fragColor = vec4(destColor.rgb, 1.0);
+    }
 }
