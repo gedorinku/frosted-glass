@@ -22,7 +22,7 @@ in vec4 normal;
 out vec4 fragColor;
 
 const float PI = 3.1415926535897932384626433832795;
-float stdDev = 24.0 / ((2560 + 1440) / 2.0) * ((WindowSize.x + WindowSize.y) / 2.0);
+float stdDev = 12.0 / ((2560 + 1440) / 2.0) * ((WindowSize.x + WindowSize.y) / 2.0);
 
 float gaus(vec2 pos) {
     float r = length(pos);
