@@ -10,10 +10,7 @@ import com.mojang.math.Vector3f;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectListIterator;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -31,45 +28,47 @@ public class FrostedGlassBlockRenderer {
     private static final String WINDOW_SIZE = "WindowSize";
     private static final String BLUR_DIRECTION = "BlurDirection";
 
+    private static final RenderStateShard.EmptyTextureStateShard FROSTED_GLASS_TEXTURE_STATE_SHARD = new RenderStateShard.EmptyTextureStateShard(() -> {
+        Minecraft.getInstance().getProfiler().push(FrostedGlassMod.ID + ":setTextureStateBeforeRender");
+
+        RenderSystem.enableTexture();
+
+        var width = Minecraft.getInstance().getWindow().getWidth();
+        var height = Minecraft.getInstance().getWindow().getHeight();
+        if (lastWindowWidth != width || lastWindowHeight != height) {
+            initializeTexture(width, height);
+            lastWindowWidth = width;
+            lastWindowHeight = height;
+        }
+
+        RenderSystem.bindTextureForSetup(textureID);
+        Minecraft.getInstance().getProfiler().push(FrostedGlassMod.ID + ":glCopyTexSubImage2D");
+        GlStateManager._glCopyTexSubImage2D(
+                GL_TEXTURE_2D,
+                0,
+                0,
+                0,
+                0,
+                0,
+                width,
+                height
+        );
+        Minecraft.getInstance().getProfiler().pop();
+        RenderSystem.setShaderTexture(1, textureID);
+
+        TextureManager textureManager = Minecraft.getInstance().getTextureManager();
+        textureManager.getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, true);
+        RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
+
+        Minecraft.getInstance().getProfiler().pop();
+    }, () -> {
+    });
+
     public static final RenderType RENDER_TYPE = RenderType
             .create(FrostedGlassMod.ID + ":frosted_glass", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 2097152, true, true, RenderType.CompositeState.builder()
                     .setLightmapState(new RenderStateShard.LightmapStateShard(true))
                     .setShaderState(new RenderStateShard.ShaderStateShard(() -> FrostedGlassMod.RENDER_TYPE_FROSTED_GLASS_SHADER))
-                    .setTextureState(new RenderStateShard.EmptyTextureStateShard(() -> {
-                        Minecraft.getInstance().getProfiler().push(FrostedGlassMod.ID + ":setTextureStateBeforeRender");
-
-                        RenderSystem.enableTexture();
-
-                        var width = Minecraft.getInstance().getWindow().getWidth();
-                        var height = Minecraft.getInstance().getWindow().getHeight();
-                        if (lastWindowWidth != width || lastWindowHeight != height) {
-                            initializeTexture(width, height);
-                            lastWindowWidth = width;
-                            lastWindowHeight = height;
-                        }
-
-                        RenderSystem.bindTextureForSetup(textureID);
-                        Minecraft.getInstance().getProfiler().push(FrostedGlassMod.ID + ":glCopyTexSubImage2D");
-                        GlStateManager._glCopyTexSubImage2D(
-                                GL_TEXTURE_2D,
-                                0,
-                                0,
-                                0,
-                                0,
-                                0,
-                                width,
-                                height
-                        );
-                        Minecraft.getInstance().getProfiler().pop();
-                        RenderSystem.setShaderTexture(1, textureID);
-
-                        TextureManager textureManager = Minecraft.getInstance().getTextureManager();
-                        textureManager.getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, true);
-                        RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
-
-                        Minecraft.getInstance().getProfiler().pop();
-                    }, () -> {
-                    }))
+                    .setTextureState(FROSTED_GLASS_TEXTURE_STATE_SHARD)
                     .setTransparencyState(new RenderStateShard.TransparencyStateShard("translucent_transparency", () -> {
                         RenderSystem.enableBlend();
                         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
@@ -87,6 +86,18 @@ public class FrostedGlassBlockRenderer {
                         }
 
                     })).createCompositeState(true));
+
+    public static final RenderType RENDER_TYPE_ITEM_ENTITY = RenderType
+            .create(FrostedGlassMod.ID + ":item_entity_frosted_glass", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, true, false,
+                    RenderType.CompositeState.builder()
+                            .setShaderState(new RenderStateShard.ShaderStateShard(() -> FrostedGlassMod.RENDER_TYPE_ITEM_ENTITY_FROSTED_GLASS_SHADER))
+                            .setTextureState(FROSTED_GLASS_TEXTURE_STATE_SHARD)
+                            .setTransparencyState(new RenderStateShard.TransparencyStateShard("no_transparency", RenderSystem::disableBlend, () -> {
+                            }))
+                            .setLightmapState(new RenderStateShard.LightmapStateShard(true))
+                            .setOverlayState(new RenderStateShard.OverlayStateShard(true))
+                            .createCompositeState(true)
+            );
 
     private static void initializeTexture(int width, int height) {
         if (textureID == -1) {

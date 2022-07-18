@@ -53,7 +53,7 @@ public abstract class ItemRendererMixin {
         }
 
         var bakedModel = getModel(itemStack, level, livingEntity, p_174252_);
-        var shaderInstance = FrostedGlassMod.RENDER_TYPE_FROSTED_GLASS_SHADER;
+        var shaderInstance = FrostedGlassMod.RENDER_TYPE_ITEM_ENTITY_FROSTED_GLASS_SHADER;
 
         for (var dir : new FrostedGlassBlockRenderer.BlurDirection[]{FrostedGlassBlockRenderer.BlurDirection.VERTICAL, FrostedGlassBlockRenderer.BlurDirection.HORIZONTAL}) {
             FrostedGlassBlockRenderer.setBlurDirection(shaderInstance, dir);
