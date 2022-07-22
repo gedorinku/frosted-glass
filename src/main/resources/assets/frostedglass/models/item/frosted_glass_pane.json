@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "frostedglass:block/frosted_glass"
+    "layer0": "frostedglass:block/frosted_glass_in_item_inventory"
   }
 }
