@@ -54,7 +54,7 @@ public class FrostedGlassBlockRenderer {
                 height
         );
         Minecraft.getInstance().getProfiler().pop();
-        RenderSystem.setShaderTexture(1, textureID);
+        RenderSystem.setShaderTexture(5, textureID);
 
         TextureManager textureManager = Minecraft.getInstance().getTextureManager();
         textureManager.getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, true);
@@ -88,7 +88,7 @@ public class FrostedGlassBlockRenderer {
                     })).createCompositeState(true));
 
     public static final RenderType RENDER_TYPE_ITEM_ENTITY = RenderType
-            .create(FrostedGlassMod.ID + ":item_entity_frosted_glass", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, true, false,
+            .create(FrostedGlassMod.ID + ":item_entity_frosted_glass", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, false,
                     RenderType.CompositeState.builder()
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> FrostedGlassMod.RENDER_TYPE_ITEM_ENTITY_FROSTED_GLASS_SHADER))
                             .setTextureState(FROSTED_GLASS_TEXTURE_STATE_SHARD)

@@ -48,7 +48,7 @@ public abstract class ItemRendererMixin {
             CallbackInfo ci
     ) {
         RenderType renderType = ItemBlockRenderTypes.getRenderType(itemStack, false);
-        if (renderType != FrostedGlassBlockRenderer.RENDER_TYPE) {
+        if (renderType != FrostedGlassBlockRenderer.RENDER_TYPE_ITEM_ENTITY) {
             return;
         }
 
@@ -60,7 +60,7 @@ public abstract class ItemRendererMixin {
             render(itemStack, transformType, p_174246_, poseStack, multiBufferSource, p_174250_, p_174251_, bakedModel);
 
             if (multiBufferSource instanceof MultiBufferSource.BufferSource) {
-                ((MultiBufferSource.BufferSource) multiBufferSource).endBatch(FrostedGlassBlockRenderer.RENDER_TYPE);
+                ((MultiBufferSource.BufferSource) multiBufferSource).endBatch(FrostedGlassBlockRenderer.RENDER_TYPE_ITEM_ENTITY);
             }
         }
 
