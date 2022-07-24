@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/template_glass_pane_side_alt",
   "textures": {
-    "pane": "minecraft:block/glass",
-    "edge": "minecraft:block/glass_pane_top"
+    "pane": "frostedglass:block/frosted_glass",
+    "edge": "frostedglass:block/frosted_glass_side"
   }
 }
