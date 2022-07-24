@@ -8,6 +8,7 @@
     "client.renderer.ItemBlockRenderTypesMixin",
     "client.renderer.ItemRendererMixin",
     "client.renderer.LevelRendererMixin",
+    "client.renderer.RenderBuffersMixin",
     "client.renderer.RenderTypeMixin"
   ],
   "injectors": {

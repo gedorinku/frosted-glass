@@ -22,6 +22,7 @@ public class FrostedGlassMod {
     public static final String ID = "frostedglass";
 
     public static ShaderInstance RENDER_TYPE_FROSTED_GLASS_SHADER;
+    public static ShaderInstance RENDER_TYPE_ITEM_ENTITY_FROSTED_GLASS_SHADER;
 
     public FrostedGlassMod() {
         Blocks.BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
@@ -40,6 +41,9 @@ public class FrostedGlassMod {
         public static void shaderRegistry(RegisterShadersEvent event) throws IOException {
             event.registerShader(new ShaderInstance(event.getResourceManager(), new ResourceLocation(ID, "frosted_glass/frosted_glass"), DefaultVertexFormat.BLOCK), shaderInstance -> {
                 RENDER_TYPE_FROSTED_GLASS_SHADER = shaderInstance;
+            });
+            event.registerShader(new ShaderInstance(event.getResourceManager(), new ResourceLocation(ID, "frosted_glass/item_entity_frosted_glass"), DefaultVertexFormat.NEW_ENTITY), shaderInstance -> {
+                RENDER_TYPE_ITEM_ENTITY_FROSTED_GLASS_SHADER = shaderInstance;
             });
         }
     }

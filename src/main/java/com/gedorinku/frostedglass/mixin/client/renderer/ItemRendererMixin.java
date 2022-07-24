@@ -48,19 +48,20 @@ public abstract class ItemRendererMixin {
             CallbackInfo ci
     ) {
         RenderType renderType = ItemBlockRenderTypes.getRenderType(itemStack, false);
-        if (renderType != FrostedGlassBlockRenderer.RENDER_TYPE) {
+        if (renderType != FrostedGlassBlockRenderer.RENDER_TYPE_ITEM_ENTITY) {
             return;
         }
 
         var bakedModel = getModel(itemStack, level, livingEntity, p_174252_);
-        var shaderInstance = FrostedGlassMod.RENDER_TYPE_FROSTED_GLASS_SHADER;
+        var shaderInstance = FrostedGlassMod.RENDER_TYPE_ITEM_ENTITY_FROSTED_GLASS_SHADER;
+        FrostedGlassBlockRenderer.setWindowSize(shaderInstance);
 
         for (var dir : new FrostedGlassBlockRenderer.BlurDirection[]{FrostedGlassBlockRenderer.BlurDirection.VERTICAL, FrostedGlassBlockRenderer.BlurDirection.HORIZONTAL}) {
             FrostedGlassBlockRenderer.setBlurDirection(shaderInstance, dir);
             render(itemStack, transformType, p_174246_, poseStack, multiBufferSource, p_174250_, p_174251_, bakedModel);
 
             if (multiBufferSource instanceof MultiBufferSource.BufferSource) {
-                ((MultiBufferSource.BufferSource) multiBufferSource).endBatch(FrostedGlassBlockRenderer.RENDER_TYPE);
+                ((MultiBufferSource.BufferSource) multiBufferSource).endBatch(FrostedGlassBlockRenderer.RENDER_TYPE_ITEM_ENTITY);
             }
         }
 

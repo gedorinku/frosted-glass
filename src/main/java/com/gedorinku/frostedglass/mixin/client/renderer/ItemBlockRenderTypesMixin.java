@@ -21,7 +21,7 @@ public abstract class ItemBlockRenderTypesMixin {
             return;
         }
 
-        cir.setReturnValue(FrostedGlassBlockRenderer.RENDER_TYPE);
+        cir.setReturnValue(FrostedGlassBlockRenderer.RENDER_TYPE_ITEM_ENTITY);
         cir.cancel();
     }
 }

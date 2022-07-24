@@ -1,7 +1,8 @@
 #version 150
 
 uniform sampler2D Sampler0;
-uniform sampler2D Sampler1;
+uniform sampler2D Sampler2;
+uniform sampler2D Sampler5;
 
 uniform vec4 ColorModulator;
 
@@ -47,7 +48,7 @@ void main() {
                 vec2 d = vec2(-radius + i * step, -radius + j * step);
                 float g = gaus(d);
                 sum += g;
-                destColor += texture(Sampler1, cord + d * tFrag) * g;
+                destColor += texture(Sampler5, cord + d * tFrag) * g;
             }
         }
     } else {
@@ -57,7 +58,7 @@ void main() {
             vec2 d = (-radius + i * step) * dir;
             float g = gaus(d);
             sum += g;
-            destColor += texture(Sampler1, cord + d * tFrag) * g;
+            destColor += texture(Sampler5, cord + d * tFrag) * g;
         }
     }
 
