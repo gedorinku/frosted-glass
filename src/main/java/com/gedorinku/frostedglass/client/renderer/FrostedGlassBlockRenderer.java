@@ -234,12 +234,7 @@ public class FrostedGlassBlockRenderer {
             shaderinstance.GAME_TIME.set(RenderSystem.getShaderGameTime());
         }
 
-        var windowSizeUniform = shaderinstance.getUniform(WINDOW_SIZE);
-        if (windowSizeUniform != null) {
-            var width = Minecraft.getInstance().getWindow().getWidth();
-            var height = Minecraft.getInstance().getWindow().getHeight();
-            windowSizeUniform.set(width, height);
-        }
+        setWindowSize(shaderinstance);
 
         setBlurDirection(shaderinstance, blurDirection);
 
@@ -251,6 +246,15 @@ public class FrostedGlassBlockRenderer {
         var blurDirectionUniform = shaderInstance.getUniform(BLUR_DIRECTION);
         if (blurDirectionUniform != null && blurDirection != null) {
             blurDirectionUniform.set(blurDirection.shaderEnum);
+        }
+    }
+
+    public static void setWindowSize(ShaderInstance shaderInstance) {
+        var windowSizeUniform = shaderInstance.getUniform(WINDOW_SIZE);
+        if (windowSizeUniform != null) {
+            var width = Minecraft.getInstance().getWindow().getWidth();
+            var height = Minecraft.getInstance().getWindow().getHeight();
+            windowSizeUniform.set(width, height);
         }
     }
 }
