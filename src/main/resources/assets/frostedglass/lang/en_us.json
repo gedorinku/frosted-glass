@@ -1,4 +1,5 @@
 {
   "block.frostedglass.frosted_glass": "Frosted Glass",
-  "block.frostedglass.frosted_glass_pane": "Frosted Glass Pane"
+  "block.frostedglass.frosted_glass_pane": "Frosted Glass Pane",
+  "itemGroup.frostedglass": "Frosted Glass"
 }
